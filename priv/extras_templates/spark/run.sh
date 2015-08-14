@@ -7,7 +7,6 @@ done
 
 if [ "$MASTER_URL" == "" ]; then
     export HOST=${HOST:-0.0.0.0}
-    export LEAD_ELECT_SERVICE_HOSTS=${LEAD_ELECT_SERVICE_HOSTS:-"$HOST:5323"}
     export RIAK_HOSTS=${RIAK_HOSTS:-"$HOST:8087"}
     export SPARK_MASTER_IP=${SPARK_MASTER_IP:-"$HOST"}
     export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
