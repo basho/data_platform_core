@@ -6,9 +6,18 @@ for i in logs work; do
 done
 
 if [ "$MASTER_URL" == "" ]; then
-    export HOST=${HOST:-0.0.0.0}
-    export LEAD_ELECT_SERVICE_HOSTS=${LEAD_ELECT_SERVICE_HOSTS:-"$HOST:5323"}
+    HOST=${HOST:-0.0.0.0} #<< bind any
+    if [[ "$HOST" == "" || "$HOST" == "0.0.0.0" ]]; then
+        # reap bindable ips from ifconfig
+        HNA=($(ifconfig |grep -E 'inet[^6]' |sed 's/addr://' |grep -v '127.0.0.1' |awk '{print $2}'))
+        # take last address
+        HNL=${#HNA[@]}
+        HOST=${HNA[HNL-1]}
+    fi
+    export HOST
     export RIAK_HOSTS=${RIAK_HOSTS:-"$HOST:8087"}
+    # if HOST based IP is not preferable, set SPARK_MASTER_IP with the correct
+    # value per machine in the appropriate profile script, ie /etc/profile
     export SPARK_MASTER_IP=${SPARK_MASTER_IP:-"$HOST"}
     export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
     export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
