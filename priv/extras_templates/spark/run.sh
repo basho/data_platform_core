@@ -8,9 +8,8 @@ done
 if [ "$MASTER_URL" == "" ]; then
     HOST=${HOST:-0.0.0.0} #<< bind any
     if [[ "$HOST" == "" || "$HOST" == "0.0.0.0" ]]; then
-        # hostname -I #<< yields ips similar to /sbin/ifconfig
-        HN=$(hostname -I)
-        HNA=($HN)
+        # reap bindable ips from ifconfig
+        HNA=$(ifconfig  | grep -E 'inet.[0-9]' | grep -v '127.0.0.1' | awk '{ print $2}')
         # take last address
         HNL=${#HNA[@]}
         HOST=${HNA[HNL-1]}
