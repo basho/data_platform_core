@@ -15,7 +15,6 @@ if [ "$MASTER_URL" == "" ]; then
         HOST=${HNA[HNL-1]}
     fi
     export HOST
-    export LEAD_ELECT_SERVICE_HOSTS=${LEAD_ELECT_SERVICE_HOSTS:-"$HOST:5323"}
     export RIAK_HOSTS=${RIAK_HOSTS:-"$HOST:8087"}
     # if HOST based IP is not preferable, set SPARK_MASTER_IP with the correct
     # value per machine in the appropriate profile script, ie /etc/profile
