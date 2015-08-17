@@ -1,18 +1,17 @@
-#! /bin/bash
+#! /bin/sh
 
 # ensure directory layout
 for i in logs work; do
       ! test -d $i && mkdir $i
 done
 
-if [ "$MASTER_URL" == "" ]; then
+if [ "$MASTER_URL" = "" ]; then
     HOST=${HOST:-0.0.0.0} #<< bind any
-    if [[ "$HOST" == "" || "$HOST" == "0.0.0.0" ]]; then
+    if [ "$HOST" = "" ] || [ "$HOST" = "0.0.0.0" ]; then
         # reap bindable ips from ifconfig
         HNA=($(ifconfig |grep -E 'inet[^6]' |sed 's/addr://' |grep -v '127.0.0.1' |awk '{print $2}'))
         # take last address
-        HNL=${#HNA[@]}
-        HOST=${HNA[HNL-1]}
+        for host in $HNA; do HOST=$host; done
     fi
     export HOST
     export RIAK_HOSTS=${RIAK_HOSTS:-"$HOST:8087"}
