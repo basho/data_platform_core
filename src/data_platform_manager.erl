@@ -199,9 +199,17 @@ add_service(Service, ServiceType, Attributes) ->
         {stdout, whereis(data_platform_service_logger)}
     ],
     lager:info("Run attributes are ~p", [RunAttributes]),
-    Out = data_platform_service_sup:start_service(Service, ExecPath, RunAttributes),
-    lager:info("Result of trying to start the service: ~p", [Out]),
+    Out = data_platform_service_sup:start_service(Service, ExecPath, RunAttributes),    
+    case Out of
+        {error, _} ->
+            {Group, Config, Node} = Service,
+            lager:error("Service ~p, ~p, ~p on node ~p failed to start. Check service logs for details.", 
+                        [ServiceType, Config, Group, Node]);
+        _ ->
+           lager:info("Result of service start: ~p", [Out])
+    end,
     Out.
+
 
 sanity_check(ServiceType) ->
     ExecPath = code:priv_dir(data_platform) ++ "/" ++ ServiceType,
