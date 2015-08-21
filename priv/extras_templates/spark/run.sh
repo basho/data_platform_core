@@ -13,7 +13,7 @@ if [ "$MASTER_URL" == "" ]; then
     export SPARK_MASTER_PORT=${SPARK_MASTER_PORT:-7077}
     export SPARK_MASTER_WEBUI_PORT=${SPARK_MASTER_WEBUI_PORT:-8080}
     echo "Starting Spark Master"
-    exec ./sbin/start-master.sh
+    exec ./sbin/start-master-foreground.sh
 else
     export HOST=${HOST:-0.0.0.0}
     export SPARK_WORKER_INSTANCES=${SPARK_WORKER_INSTANCES:-1}
@@ -21,6 +21,6 @@ else
     export SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_WEBUI_PORT:-8081}
     export RIAK_HOSTS=${RIAK_HOSTS:-"$HOST:8087"}
     echo "Starting Spark Worker"
-    exec ./sbin/start-slave.sh $MASTER_URL
+    exec ./sbin/start-slave-foreground.sh $MASTER_URL
 fi
 
