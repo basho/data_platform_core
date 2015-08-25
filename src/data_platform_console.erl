@@ -98,10 +98,11 @@ remove_service_config_register() ->
 
 start_service_register() ->
     IpFlag = {output_ip, [{shortname, "i"}, {longname, "output-ip"}]},
+    PortFlag = {output_port, [{shortname, "p"}, {longname, "output-port"}]},
     [
      [?CMD, "start-service", '*', '*', '*'], %% Cmd
      [],                                     %% KeySpecs
-     [IpFlag],                               %% FlagSpecs
+     [IpFlag, PortFlag],                     %% FlagSpecs
      fun start_service/3                     %% Callback
     ].
 
@@ -315,10 +316,16 @@ start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
                     case Flags of
                         [] ->
                             [clique_status:text("Service started")];
-                        [{output_ip, _}] ->
-                            [_AtChar | Host] = lists:dropwhile(fun(C) -> C =/= $@ end, NodeStr),
-                            {ok, Addr} = inet:getaddr(Host, inet),
-                            [clique_status:text(inet:ntoa(Addr))]
+                        _ ->
+                            AddrOutput = case lists:keyfind(output_ip, 1, Flags) of
+                                           false -> "";
+                                           _ -> [get_service_host(NodeStr), "\n"]
+                                       end,
+                            PortOutput = case lists:keyfind(output_port, 1, Flags) of
+                                             false -> "";
+                                             _ -> [get_service_port(ConfigName), "\n"]
+                                         end,
+                            [clique_status:text([AddrOutput, PortOutput])]
                     end;
                 {error, config_not_found} ->
                     Output = ["Unable to start service - configuration \"",
@@ -332,6 +339,14 @@ start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
                     [clique_status:alert([clique_status:text([Output])])]
             end
     end.
+
+get_service_host(NodeStr) ->
+    [_AtChar | Host] = lists:dropwhile(fun(C) -> C =/= $@ end, NodeStr),
+    {ok, Addr} = inet:getaddr(Host, inet),
+    inet:ntoa(Addr).
+
+get_service_port(_ConfigName) ->
+    "FIXME".
 
 stop_service([?CMD, "stop-service", NodeStr, Group, ConfigName], [], []) ->
     case clique_typecast:to_node(NodeStr) of
