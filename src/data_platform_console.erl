@@ -345,8 +345,29 @@ get_service_host(NodeStr) ->
     {ok, Addr} = inet:getaddr(Host, inet),
     inet:ntoa(Addr).
 
-get_service_port(_ConfigName) ->
-    "FIXME".
+get_service_port(ConfigName) ->
+    %% This is definitely hacky, but we have no standardized way of configuring a services port,
+    %% so we need to check the configuration differently for each different service we support.
+    %% If we want to support arbitrary custom services, we'll need to come up with some sort
+    %% of standardized way of handling this kind of thing, but for now it should be okay to punt
+    %% on it.
+    {_, Packages} = data_platform_global_state:services(),
+    case lists:keyfind(ConfigName, 1, Packages) of
+        false ->
+            "-1";
+        {ConfigName, ServiceType, ServiceConfig} ->
+            NormalizedConfig = [{string:to_upper(K), V} || {K, V} <- ServiceConfig],
+            case ServiceType of
+                "redis" ->
+                    proplists:get_value("REDIS_PORT", NormalizedConfig, "6379");
+                "cache-proxy" ->
+                    proplists:get_value("CACHE_PROXY_PORT", NormalizedConfig, "22122");
+                "spark-master" ->
+                    proplists:get_value("SPARK_MASTER_PORT", NormalizedConfig, "7077");
+                "spark-worker" ->
+                    proplists:get_value("SPARK_WORKER_PORT", NormalizedConfig, "7078")
+            end
+    end.
 
 stop_service([?CMD, "stop-service", NodeStr, Group, ConfigName], [], []) ->
     case clique_typecast:to_node(NodeStr) of
