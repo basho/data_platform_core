@@ -518,7 +518,15 @@ check_riak_node(Node) ->
 %% if we can confirm that the node actually exists, we can go ahead and convert to an
 %% atom and return the result.
 list_to_existing_node(NodeStr) ->
-    {NodeName, [$@ | NodeHost]} = lists:splitwith(fun(C) -> C =/= $@ end, NodeStr),
+    {NodeName, AtNodeHost} = lists:splitwith(fun(C) -> C =/= $@ end, NodeStr),
+    case AtNodeHost of
+        [$@ | NodeHost] ->
+            list_to_existing_node(NodeName, NodeHost, NodeStr);
+        _ ->
+            {error, bad_node}
+    end.
+
+list_to_existing_node(NodeName, NodeHost, NodeStr) ->
     case net_adm:names(NodeHost) of
         {ok, NodeList} ->
             case lists:keyfind(NodeName, 1, NodeList) of
