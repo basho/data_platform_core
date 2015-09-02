@@ -503,10 +503,13 @@ remove_service_config_usage() ->
 
 start_service_usage() ->
     [
-     "data-platform-admin start-service <node> <group> <service> [-i | --output-ip]\n",
+     "data-platform-admin start-service <node> <group> <service>\n",
+     "                     [-i | --output-ip] [-p | --output-port]\n",
      " Start a service on an the designated platform instance\n\n",
      " The -i/--output-ip flag will cause the IP address of <node>\n",
-     " to be printed back out on the console in lieu of the normal output.\n"
+     " to be printed back out on the console in lieu of the normal output.\n\n",
+     " The -p/--output-port flag will similarly cause the configured port\n",
+     " of the service to be printed out on the console.\n"
     ].
 
 stop_service_usage() ->
