@@ -98,10 +98,11 @@ remove_service_config_register() ->
 
 start_service_register() ->
     IpFlag = {output_ip, [{shortname, "i"}, {longname, "output-ip"}]},
+    PortFlag = {output_port, [{shortname, "p"}, {longname, "output-port"}]},
     [
      [?CMD, "start-service", '*', '*', '*'], %% Cmd
      [],                                     %% KeySpecs
-     [IpFlag],                               %% FlagSpecs
+     [IpFlag, PortFlag],                     %% FlagSpecs
      fun start_service/3                     %% Callback
     ].
 
@@ -315,10 +316,16 @@ start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
                     case Flags of
                         [] ->
                             [clique_status:text("Service started")];
-                        [{output_ip, _}] ->
-                            [_AtChar | Host] = lists:dropwhile(fun(C) -> C =/= $@ end, NodeStr),
-                            {ok, Addr} = inet:getaddr(Host, inet),
-                            [clique_status:text(inet:ntoa(Addr))]
+                        _ ->
+                            AddrOutput = case lists:keyfind(output_ip, 1, Flags) of
+                                           false -> "";
+                                           _ -> [get_service_host(NodeStr), "\n"]
+                                       end,
+                            PortOutput = case lists:keyfind(output_port, 1, Flags) of
+                                             false -> "";
+                                             _ -> [get_service_port(ConfigName), "\n"]
+                                         end,
+                            [clique_status:text([AddrOutput, PortOutput])]
                     end;
                 {error, config_not_found} ->
                     Output = ["Unable to start service - configuration \"",
@@ -330,6 +337,35 @@ start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
                 {error, Error} ->
                     Output = io_lib:format("Failed to start service! Reason: ~p", [Error]),
                     [clique_status:alert([clique_status:text([Output])])]
+            end
+    end.
+
+get_service_host(NodeStr) ->
+    [_AtChar | Host] = lists:dropwhile(fun(C) -> C =/= $@ end, NodeStr),
+    {ok, Addr} = inet:getaddr(Host, inet),
+    inet:ntoa(Addr).
+
+get_service_port(ConfigName) ->
+    %% This is definitely hacky, but we have no standardized way of configuring a services port,
+    %% so we need to check the configuration differently for each different service we support.
+    %% If we want to support arbitrary custom services, we'll need to come up with some sort
+    %% of standardized way of handling this kind of thing, but for now it should be okay to punt
+    %% on it.
+    {_, Packages} = data_platform_global_state:services(),
+    case lists:keyfind(ConfigName, 1, Packages) of
+        false ->
+            "-1";
+        {ConfigName, ServiceType, ServiceConfig} ->
+            NormalizedConfig = [{string:to_upper(K), V} || {K, V} <- ServiceConfig],
+            case ServiceType of
+                "redis" ->
+                    proplists:get_value("REDIS_PORT", NormalizedConfig, "6379");
+                "cache-proxy" ->
+                    proplists:get_value("CACHE_PROXY_PORT", NormalizedConfig, "22122");
+                "spark-master" ->
+                    proplists:get_value("SPARK_MASTER_PORT", NormalizedConfig, "7077");
+                "spark-worker" ->
+                    proplists:get_value("SPARK_WORKER_PORT", NormalizedConfig, "7078")
             end
     end.
 
@@ -467,10 +503,13 @@ remove_service_config_usage() ->
 
 start_service_usage() ->
     [
-     "data-platform-admin start-service <node> <group> <service> [-i | --output-ip]\n",
+     "data-platform-admin start-service <node> <group> <service>\n",
+     "                     [-i | --output-ip] [-p | --output-port]\n",
      " Start a service on an the designated platform instance\n\n",
      " The -i/--output-ip flag will cause the IP address of <node>\n",
-     " to be printed back out on the console in lieu of the normal output.\n"
+     " to be printed back out on the console in lieu of the normal output.\n\n",
+     " The -p/--output-port flag will similarly cause the configured port\n",
+     " of the service to be printed out on the console.\n"
     ].
 
 stop_service_usage() ->
