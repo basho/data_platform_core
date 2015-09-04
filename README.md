@@ -20,5 +20,5 @@ Issues, Questions and Bugs
 There are numerous ways to file issues or start conversations around something related to Data Platform Core:
 
 * The Riak Userls List is main place for discussions around all things Riak.
-* &#35riak on Freenode is a very active channel and you can get some real-time in a lot of instances
+* #riak on Freenode is a very active channel and you can get some real-time in a lot of instances
 * If you've found a bug in Data Platform Core, [file](https://github.com/basho/data_platform_core/issues) a clear, concise, explanatory issue against this repo.
