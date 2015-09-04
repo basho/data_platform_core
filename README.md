@@ -1,7 +1,7 @@
 Data Platform Core
 ----
 
-Data Platform core is the additive component to [Riak KV](https://github.com/basho/riak), colloquially called "the Service Manager", that enables Riak to run supervised 3rd party applications on a Riak+BDP cluster. More generally, it can be thought of an application executor and watcher, that provides service configuration meta-data exchange in a distributed, scalable, fault-tolerant method.
+Data Platform Core is the additive component to [Riak KV](https://github.com/basho/riak), colloquially called "the Service Manager", that enables Riak to run supervised 3rd party applications on a Riak+BDP cluster. More generally, it can be thought of an application executor and watcher, that provides service configuration meta-data exchange in a distributed, scalable, fault-tolerant method.
 
 Contributing
 ----
