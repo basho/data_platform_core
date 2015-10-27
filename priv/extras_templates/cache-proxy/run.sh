@@ -9,7 +9,7 @@ CACHE_PROXY_CONFIG=${CACHE_PROXY_CONFIG:-"./config/cache_proxy_$CACHE_PROXY_PORT
 REDIS_SERVERS=${REDIS_SERVERS:-"127.0.0.1:6379"}
 RIAK_KV_SERVERS=${RIAK_KV_SERVERS:-"127.0.0.1:8087"}
 # CSV to array server lists, NOTE: also supports space-delimited string
-IFS=","
+IFS=", "
 echo "$REDIS_SERVERS" | while read line
 do
     for field in "$line"
