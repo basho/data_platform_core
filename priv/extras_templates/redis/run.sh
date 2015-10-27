@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 HOST=${HOST:-"0.0.0.0"}
 REDIS_PORT=${REDIS_PORT:-6379}
 

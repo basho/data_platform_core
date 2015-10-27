@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 HOST=${HOST:-"0.0.0.0"}
 CACHE_PROXY_PORT=${CACHE_PROXY_PORT:-"22122"}
 CACHE_PROXY_STATS_PORT=${CACHE_PROXY_STATS_PORT:-"22123"}
@@ -9,14 +9,21 @@ CACHE_PROXY_CONFIG=${CACHE_PROXY_CONFIG:-"./config/cache_proxy_$CACHE_PROXY_PORT
 REDIS_SERVERS=${REDIS_SERVERS:-"127.0.0.1:6379"}
 RIAK_KV_SERVERS=${RIAK_KV_SERVERS:-"127.0.0.1:8087"}
 # CSV to array server lists, NOTE: also supports space-delimited string
-while IFS=, read -a LINE
+IFS=","
+echo "$REDIS_SERVERS" | while read line
 do
-    REDIS_SERVERS="${LINE[@]}"
-done <<< "$REDIS_SERVERS"
-while IFS=, read -a LINE
+    for field in "$line"
+    do
+        REDIS_SERVERS="$REDIS_SERVERS $field"
+    done
+done
+echo "$RIAK_KV_SERVERS" | while read line
 do
-    RIAK_KV_SERVERS="${LINE[@]}"
-done <<< "$RIAK_KV_SERVERS"
+    for field in "$line"
+    do
+        RIAK_KV_SERVERS="RIAK_KV_SERVERS $field"
+    done
+done
 CACHE_TTL=${CACHE_TTL:-"15s"}
 
 CACHE_PROXY_RUN_LOG=${CACHE_PROXY_RUN_LOG:-"./log/cache_proxy_$CACHE_PROXY_PORT.log"}
@@ -32,7 +39,7 @@ export LD_LIBRARY_PATH
 export LD_LOAD_PATH
 export DYLD_LIBRARY_PATH
 
-function create_config_content() {
+create_config_content () {
     host=$1
     cache_proxy_port=$2
     cache_ttl=$3
@@ -52,7 +59,7 @@ EOF
 )
 }
 
-function append_redis_servers_config_lines() {
+append_redis_servers_config_lines () {
     redis_servers=$1
 
     for redis_server in $redis_servers; do
@@ -64,10 +71,10 @@ EOF
     done
 }
 
-function append_riak_kv_servers_config_lines() {
+append_riak_kv_servers_config_lines () {
     riak_kv_servers=$1
 
-    if [[ "$riak_kv_servers" == "" ]]; then
+    if [ "$riak_kv_servers" = "" ]; then
         return
     fi
 
@@ -96,10 +103,10 @@ create_config_content $HOST $CACHE_PROXY_PORT $CACHE_TTL
 append_redis_servers_config_lines "$REDIS_SERVERS"
 append_riak_kv_servers_config_lines "$RIAK_KV_SERVERS"
 
-echo -e "$CONFIG_CONTENT" >$CACHE_PROXY_CONFIG
+echo "$CONFIG_CONTENT" >$CACHE_PROXY_CONFIG
 
 test -e $CACHE_PROXY_PID && pgrep -F $CACHE_PROXY_PID >/dev/null 2>&1
-if [[ $? == "0" ]]; then
+if [ $? = "0" ]; then
     echo "Cache Proxy service is already running, see $CACHE_PROXY_PID"
     exit 1
 fi
