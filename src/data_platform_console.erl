@@ -143,7 +143,7 @@ join([?CMD, "join", NodeStr], [], []) ->
         Err = {error, _} ->
             Err;
         Node when Node =:= node() ->
-            [clique_status:alert([clique_status:text("Cannot join a node to itself")])];
+            alert([clique_status:text("Cannot join a node to itself")]);
         Node ->
             case check_riak_node(Node) of
                 true ->
@@ -152,13 +152,13 @@ join([?CMD, "join", NodeStr], [], []) ->
                             [clique_status:text("Node joined")];
                         remote_not_enabled ->
                             Output = ["Ensemble not enabled on node ", NodeStr],
-                            [clique_status:alert([clique_status:text(Output)])];
+                            alert([clique_status:text(Output)]);
                         Error ->
                             Output = io_lib:format("Join failed! Reason: ~p", [Error]),
-                            [clique_status:alert([clique_status:text(Output)])]
+                            alert([clique_status:text(Output)])
                     end;
                 false ->
-                    [clique_status:alert([clique_status:text([NodeStr, " is not a Riak node"])])]
+                    alert([clique_status:text([NodeStr, " is not a Riak node"])])
             end
     end.
 
@@ -170,14 +170,14 @@ leave([?CMD, "leave"], [], []) ->
             Output = ["This node is a member of a Riak cluster.\n",
                       "Please remove it from the cluster using\n",
                       "the riak-admin cluster commands instead.\n"],
-            [clique_status:alert([clique_status:text(Output)])];
+            alert([clique_status:text(Output)]);
         {error, services_running} ->
             Output = ["There are still services running on this node!\n",
                       "Please stop them before removing this node from the cluster.\n"],
-            [clique_status:alert([clique_status:text(Output)])];
+            alert([clique_status:text(Output)]);
         Error ->
             Output = io_lib:format("Unable to leave cluster! Reason: ~p", [Error]),
-            [clique_status:alert([clique_status:text(Output)])]
+            alert([clique_status:text(Output)])
     end.
 
 maybe_leave() ->
@@ -248,7 +248,7 @@ cluster_status([?CMD, "cluster-status"], [], []) ->
             Output = ["Strong consistency is not enabled on this node.\n",
                       "To create a Data Platform cluster, strong consistency must first be enabled."
                      ],
-            [clique_status:alert([clique_status:text(Output)])];
+            alert([clique_status:text(Output)]);
         true ->
             HeaderStr = ["--- Cluster Status ---\n",
                          "Strong Consistency: enabled\n"],
@@ -281,13 +281,13 @@ add_service_config([?CMD, "add-service-config", ConfigName, ServiceType], Config
                 {error, config_already_exists} ->
                     Output1 = "Unable to add service config - configuration name already in use\n",
                     Output2 = "Use -f or --force to overwrite any existing config with that name",
-                    [clique_status:alert([clique_status:text([Output1, Output2])])];
+                    alert([clique_status:text([Output1, Output2])]);
                 {error, Error} ->
                     Output = io_lib:format("Add service configuration failed! Reason: ~p", [Error]),
-                    [clique_status:alert([clique_status:text(Output)])]
+                    alert([clique_status:text(Output)])
             end;
         false ->
-            [clique_status:alert([clique_status:text(["Invalid service \"", ServiceType, "\""])])]
+            alert([clique_status:text(["Invalid service \"", ServiceType, "\""])])
     end.
 
 remove_service_config([?CMD, "remove-service-config", ConfigName], [], []) ->
@@ -297,13 +297,13 @@ remove_service_config([?CMD, "remove-service-config", ConfigName], [], []) ->
         {error, config_not_found} ->
             Output = ["Unable to find any existing service configuration named \"",
                       ConfigName, "\""],
-            [clique_status:alert([clique_status:text(Output)])];
+            alert([clique_status:text(Output)]);
         {error, config_in_use} ->
             Output = "Oops! It appears this configuration is currently in use by a running service",
-            [clique_status:alert([clique_status:text(Output)])];
+            alert([clique_status:text(Output)]);
         {error, Error} ->
             Output = io_lib:format("Failed to remove service configuration ~p! Reason: ~p", [ConfigName, Error]),
-            [clique_status:alert([clique_status:text([Output])])]
+            alert([clique_status:text([Output])])
     end.
 
 start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
@@ -330,13 +330,13 @@ start_service([?CMD, "start-service", NodeStr, Group, ConfigName], [], Flags) ->
                 {error, config_not_found} ->
                     Output = ["Unable to start service - configuration \"",
                               ConfigName, "\" does not exist"],
-                    [clique_status:alert([clique_status:text(Output)])];
+                    alert([clique_status:text(Output)]);
                 {error, already_running} ->
                     Output = [Group, "/", ConfigName, " already running on node ", NodeStr, "!"],
-                    [clique_status:alert([clique_status:text(Output)])];
+                    alert([clique_status:text(Output)]);
                 {error, Error} ->
                     Output = io_lib:format("Failed to start service! Reason: ~p", [Error]),
-                    [clique_status:alert([clique_status:text([Output])])]
+                    alert([clique_status:text([Output])])
             end
     end.
 
@@ -379,11 +379,11 @@ stop_service([?CMD, "stop-service", NodeStr, Group, ConfigName], [], []) ->
                     [clique_status:text("Service stopped")];
                 {error, service_not_found} ->
                     Output = [Group, "/", ConfigName, " is not running on node ", NodeStr, "!"],
-                    [clique_status:alert([clique_status:text(Output)])];
+                    alert([clique_status:text(Output)]);
                 {error, Error} ->
                     Output = io_lib:format("Failed to stop service ~p! Reason: ~p",
                                            [ConfigName, Error]),
-                    [clique_status:alert([clique_status:text([Output])])]
+                    alert([clique_status:text([Output])])
             end
     end.
 
@@ -535,6 +535,9 @@ service_nodes_usage() ->
      "data-platform-admin service-nodes <service>\n",
      " Display all nodes running the designated service\n"
     ].
+
+alert(Status) ->
+    {exit_status, 1, [clique_status:alert(Status)]}.
 
 check_riak_node(Node) ->
     case net_adm:ping(Node) of
