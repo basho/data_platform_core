@@ -11,7 +11,7 @@ if [ "$MASTER_URL" = "" ]; then
         # reap bindable ips from ifconfig
         IFCONFIG=$(which ifconfig)
         IFCONFIG=${IFCONFIG:-'/sbin/ifconfig'}
-        HNA=($($IFCONFIG |grep -E 'inet[^6]' |sed 's/addr://' |grep -v '127.0.0.1' |awk '{print $2}'))
+        HNA=$($IFCONFIG |grep -E 'inet[^6]' |sed 's/addr://' |grep -v '127.0.0.1' |awk '{print $2}')
         # take last address
         for host in $HNA; do HOST=$host; done
     fi
