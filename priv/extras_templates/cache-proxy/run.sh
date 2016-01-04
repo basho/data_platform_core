@@ -21,7 +21,7 @@ echo "$RIAK_KV_SERVERS" | while read line
 do
     for field in "$line"
     do
-        RIAK_KV_SERVERS="RIAK_KV_SERVERS $field"
+        RIAK_KV_SERVERS="$RIAK_KV_SERVERS $field"
     done
 done
 CACHE_TTL=${CACHE_TTL:-"15s"}
@@ -103,7 +103,7 @@ create_config_content $HOST $CACHE_PROXY_PORT $CACHE_TTL
 append_redis_servers_config_lines "$REDIS_SERVERS"
 append_riak_kv_servers_config_lines "$RIAK_KV_SERVERS"
 
-echo "$CONFIG_CONTENT" >$CACHE_PROXY_CONFIG
+printf "$CONFIG_CONTENT\n" >$CACHE_PROXY_CONFIG
 
 test -e $CACHE_PROXY_PID && pgrep -F $CACHE_PROXY_PID >/dev/null 2>&1
 if [ $? = "0" ]; then
